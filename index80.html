@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Jelly Brawl — 果凍亂鬥</title>
+<link rel="stylesheet" href="style80.css">
+<style>
+/* --- 基礎設定優化 --- */
+body { 
+  margin: 0; 
+  /* 關鍵修正：body 必須透明，背景畫布 menuBg 才能顯示 */
+  background: transparent; 
+  color: #eee; 
+  font-family: 'Segoe UI', Arial, sans-serif; 
+  overflow: hidden; /* 防止主選單出現捲軸 */
+}
+
+/* 背景畫布專用樣式 */
+
+
+
+/* 遊戲畫布 */
+#game { 
+  display: none; 
+  margin: 0 auto; 
+  /* 2025 視覺：移除漸層，改用乾淨的深色，配合 drawBackground 的網格 */
+  background: #0f0f13; 
+  box-shadow: 0 0 50px rgba(0,0,0,0.5);
+  border: 2px solid #333;
+}
+
+/* --- 主選單 UI 優化 --- */
+#menu {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(15, 15, 25, 0.7); /* 降低透明度讓背景果凍更明顯 */
+  backdrop-filter: blur(12px); /* 磨砂玻璃效果 */
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 255, 242, 0.3);
+  border-radius: 24px;
+  padding: 50px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  color: white;
+  min-width: 400px;
+  z-index: 10;
+}
+
+h1.game-title {
+  font-size: 64px;
+  margin-bottom: 40px;
+  color: #fff;
+  text-shadow: 0 0 20px rgba(0, 255, 242, 0.6);
+  letter-spacing: 4px;
+  animation: float 3s ease-in-out infinite;
+}
+
+/* 按鈕美化 */
+.btn-primary, .btn-secondary, .menu-btn {
+  background: rgba(0, 255, 242, 0.05);
+  border: 1px solid #00fff2;
+  color: #00fff2;
+  padding: 12px 30px;
+  margin: 12px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btn-primary:hover, .btn-secondary:hover, .menu-btn:hover {
+  background: #00fff2;
+  color: #0a0a12;
+  box-shadow: 0 0 30px rgba(0, 255, 242, 0.5);
+  transform: scale(1.05) translateY(-2px);
+}
+
+/* 地圖選擇介面 */
+#mapMenu {
+  background: rgba(10, 10, 15, 0.9);
+  padding: 30px;
+  border-radius: 20px;
+}
+
+.mapItem { 
+  display: inline-block; 
+  margin: 15px; 
+  transition: transform 0.3s;
+  cursor: pointer;
+}
+
+.mapItem:hover {
+  transform: translateY(-5px);
+}
+
+.mapItem canvas { 
+  display: block; 
+  margin-bottom: 10px; 
+  border: 2px solid #444; 
+  border-radius: 10px;
+  background: #111; 
+}
+
+/* 遊戲中訊息 */
+#overlayMsg { 
+  position: fixed; 
+  left: 50%; 
+  top: 50%; 
+  transform: translate(-50%, -50%); 
+  pointer-events: none; 
+  color: #fff; 
+  text-shadow: 0 0 10px #000;
+  z-index: 100;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+.preview-holder {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 50%;
+  border: 1px solid rgba(0, 255, 242, 0.15);
+  margin: 10px 0;
+  box-shadow: inset 0 0 20px rgba(0, 255, 242, 0.05);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 110px;
+  height: 110px;
+}
+
+.player-config {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+}
+
+.p1-box, .p2-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+/* 開關容器 */
+.toggle-wrapper {
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.toggle-label {
+    color: #fff;
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(0, 255, 242, 0.5);
+}
+
+/* 滑動開關本體 */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.switch input { opacity: 0; width: 0; height: 0; }
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #333;
+    transition: .4s;
+    border-radius: 24px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px; width: 18px;
+    left: 3px; bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255,255,255,0.5);
+}
+
+/* 開啟狀態的顏色 */
+input:checked + .slider {
+    background-color: #00fff2;
+    box-shadow: 0 0 15px rgba(0, 255, 242, 0.6);
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+</style>
+</head>
+<body>
+<canvas id="menuBg" style="position:fixed; top:0; left:0; z-index:-1;"></canvas>
+
+<body>
+<canvas id="menuBg" style="position:fixed; top:0; left:0; z-index:-1;"></canvas>
+
+<!-- 主選單：確保 id="menu" 存在且完整包裹內容 -->
+<div id="menu" class="container">
+  <h1 class="game-title">Jelly Brawl</h1>
+
+  <!-- 戰鬥模式區塊 (之前不小心刪掉的部分) -->
+  <div class="mode-selection">
+    <h3>選擇戰鬥模式</h3>
+    <div class="button-group">
+      <button id="localBtn" class="btn-primary">PVP 雙人對戰</button>
+      <button id="pveBtn" class="btn-secondary">PVE 人機挑戰</button>
+    </div>
+  </div>
+
+  <!-- 角色預覽與設定區 -->
+  <div class="setup-section">
+    <div class="player-config">
+      <!-- P1 設定 -->
+      <div class="p1-box">
+        <h3>P1</h3>
+        <div class="preview-holder">
+          <canvas id="p1Preview" width="100" height="100"></canvas>
+        </div>
+        <select id="p1Color" class="color-picker">
+          <option value="#FF3B3B">極致紅</option>
+          <option value="#3B82F6">星際藍</option>
+          <option value="#10B981">翡翠綠</option>
+          <option value="#F59E0B">琥珀橙</option>
+          <option value="#8B5CF6">靈魂紫</option>
+          <option value="#FFFFFF">純潔白</option>
+        </select>
+      </div>
+
+      <div class="vs-divider" style="font-size: 24px; font-weight: bold; color: #00fff2; margin: 0 20px;">VS</div>
+
+      <!-- P2 設定 -->
+      <div class="p2-box">
+        <h3>P2 / AI</h3>
+        <div class="preview-holder">
+          <canvas id="p2Preview" width="100" height="100"></canvas>
+        </div>
+        <select id="p2Color" class="color-picker">
+          <option value="#3B82F6">星際藍</option>
+          <option value="#FF3B3B">極致紅</option>
+          <option value="#10B981">翡翠綠</option>
+          <option value="#F59E0B">琥珀橙</option>
+          <option value="#8B5CF6">靈魂紫</option>
+          <option value="#000000">深淵黑</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <!-- 在你的主選單 div 內插入 -->
+<div id="itemModeContainer" class="toggle-wrapper">
+    <span class="toggle-label">道具掉落模式</span>
+    <label class="switch">
+        <input type="checkbox" id="itemModeToggle" checked>
+        <span class="slider"></span>
+    </label>
+</div>
+
+
+  <div class="map-footer" style="margin-top: 30px;">
+    <button id="mapSelectBtn" class="btn-outline menu-btn">選擇戰鬥地圖</button>
+    <p id="selectedMapLabel">當前戰場：平地地圖</p>
+  </div>
+</div>
+
+<!-- 地圖選單 (保持獨立) -->
+<div id="mapMenu" class="container" style="display:none;">
+  <h2 class="section-title">選擇戰場</h2>
+  <div id="mapList" class="map-grid"></div>
+  <div class="footer-btns">
+    <button id="backToMenuBtn" class="btn-outline menu-btn">返回主選單</button>
+    <button id="randomMapBtn" class="btn-secondary menu-btn">隨機選擇</button>
+  </div>
+</div>
+
+
+<canvas id="game" width="900" height="500"></canvas>
+<div id="overlayMsg" style="display:none;"></div>
+
+<!-- 腳本 -->
+<script src="maps.js"></script>
+<script src="game80.js"></script>
+</body>

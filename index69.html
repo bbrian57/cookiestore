@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>英雄戰場</title>
+<link rel="stylesheet" href="style69.css">
+</head>
+
+<body>
+
+<!-- 金幣 SVG -->
+<svg width="0" height="0" style="position:absolute;left:-9999px;top:-9999px" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="coinGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffe58a"/>
+      <stop offset="1" stop-color="#ffb83d"/>
+    </linearGradient>
+    <radialGradient id="coinShine" cx="30%" cy="25%" r="70%">
+      <stop offset="0" stop-color="rgba(255,255,255,.85)"/>
+      <stop offset="1" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+  </defs>
+  <symbol id="icon-coin" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="9" fill="url(#coinGrad)" stroke="rgba(255,255,255,.55)" stroke-width="1.2"/>
+    <circle cx="12" cy="12" r="6.2" fill="rgba(255,255,255,.12)"/>
+    <path d="M12 6.9c-2.4 0-4.3 1.1-4.3 2.7 0 1.4 1.3 2.3 3.2 2.6l 2.3.3c1.2.2 1.9.7 1.9 1.4 0 .9-1.2 1.6-2.9 1.6-1.5 0-2.8-.6-3.4-1.4"
+          stroke="#7a4a00" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+    <path d="M12 6.6v10.8" stroke="#7a4a00" stroke-width="1.6" stroke-linecap="round"/>
+    <ellipse cx="9.5" cy="8.2" rx="6" ry="4" fill="url(#coinShine)" opacity=".45"/>
+  </symbol>
+</svg>
+
+<h1>⚔️ 英雄戰場（英雄技能可選）</h1>
+
+<div class="container">
+
+  <!-- HERO -->
+  <div class="panel" id="heroPanel">
+    <div class="panelHeader">
+      <div class="panelTitle">🧝 英雄面板</div>
+      <div class="sub" id="statusText">準備中…</div>
+    </div>
+
+    <div class="heroWrap">
+      <img class="hero" id="heroImg" src="hero_elf.png" alt="英雄圖">
+      <div>
+        <div style="font-weight:1000;font-size:18px;letter-spacing:.4px;" id="heroName">英雄</div>
+        <div class="sub" id="heroDesc">技能描述</div>
+
+        <div class="selectRow">
+          <select id="heroSelect"></select>
+          <button class="btn btnPrimary" id="applyHeroBtn" onclick="applyHeroSelection()">✅ 套用英雄</button>
+        </div>
+        <div class="smallNote" id="heroNote"></div>
+
+        <div class="badges">
+          <span class="badge">❤️ HP <b><span id="hp">30</span></b></span>
+          <span class="badge">
+            <svg class="coinIcon" viewBox="0 0 24 24"><use href="#icon-coin"></use></svg>
+            金幣 <b><span id="gold">10</span></b>
+          </span>
+          <span class="badge">🏠 旅店 <b><span id="tavern">1</span></b></span>
+          <span class="badge">⏱ 回合 <b><span id="turn">1</span></b></span>
+          <span class="badge">🔥 連勝 <b><span id="streak">0</span></b></span>
+        </div>
+
+        <div class="hpBar" title="血量"><div class="hpFill" id="hpFill"></div></div>
+
+        <div class="btnRow">
+          <button class="btn btnPrimary" id="upgradeBtn" onclick="upgradeTavern()">
+            ⬆️ 升級旅店（<span id="upgradeCost">5</span> 金）
+          </button>
+          <button class="btn" id="refreshBtn" onclick="refreshShop()">🔄 刷新酒館（1 金）</button>
+          <button class="btn" id="freezeBtn" onclick="toggleFreeze()">🧊 凍結：<span id="freezeState">關</span></button>
+          <button class="btn btnDanger" id="battleBtn" onclick="endTurnBattle()">⚔️ 結束回合並戰鬥</button>
+        </div>
+
+        <div class="smallNote" id="gameInfoBox">
+          ✅ 購買卡牌先進「背包」，點背包卡牌上場；戰場最多 <b>7</b> 張<br>
+          ⭐ 背包+戰場同名卡一起計算三合一（合成後回到背包）<br>
+          ✅ 戰鬥是模擬，你的戰場卡牌不會因戰鬥消失<br>
+          💀 HP 歸零會強制重開
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ENEMY -->
+  <div class="panel" id="enemyPanel">
+    <div class="panelHeader">
+      <div class="panelTitle">👹 對手預覽</div>
+      <div class="sub">本回合對戰的敵方（回合越高越強）</div>
+    </div>
+    <div class="row enemyRow" id="enemyPreview"></div>
+    <div class="smallNote">（最多 7 隻）</div>
+  </div>
+
+  <!-- SHOP -->
+  <div class="panel" id="shopPanel">
+    <div class="panelHeader">
+      <div class="panelTitle">🛒 酒館</div>
+      <div class="sub">點卡牌購買（技能可能改價格/刷新/加成）</div>
+    </div>
+    <div class="row" id="shop"></div>
+  </div>
+
+  <!-- BAG -->
+  <div class="panel" id="bagPanel">
+    <div class="panelHeader">
+      <div class="panelTitle">🎒 背包</div>
+      <div class="sub">點卡牌：上場｜右鍵：賣出 +1 金</div>
+    </div>
+    <div class="row" id="bag"></div>
+  </div>
+
+  <!-- BOARD -->
+  <div class="panel" id="boardPanel">
+    <div class="panelHeader">
+      <div class="panelTitle">🧍 你的戰場</div>
+      <div class="sub">最多 7 張（點卡牌：下場回背包｜右鍵賣出 +1 金）</div>
+    </div>
+    <div class="row" id="board"></div>
+  </div>
+
+</div>
+
+<!-- ====== 開局選職業（只能選一次） ====== -->
+<div class="overlay" id="heroPickOverlay">
+  <div class="resultCard" onclick="event.stopPropagation()">
+    <div class="resultTop">
+      <div class="resultBig">選擇職業</div>
+      <div class="pill">開局只能選一次</div>
+    </div>
+    <div class="resultBody">
+      <div class="smallNote" style="margin:0 0 10px;">
+        先選好職業才會開始遊戲（選完就不能改）
+      </div>
+      <div class="selectRow" style="justify-content:flex-start;">
+        <select id="heroPickSelect"></select>
+      </div>
+      <div class="smallNote" id="heroPickDesc"></div>
+    </div>
+    <div class="resultBtnRow">
+      <button class="btn btnPrimary" onclick="confirmHeroPick()">🚀 開始遊戲</button>
+    </div>
+  </div>
+</div>
+
+<!-- ✅ 遊戲引導（含箭頭/手指層） -->
+<div class="guideOverlay" id="guideOverlay" aria-hidden="true">
+  <!-- 指向用圖層：箭頭 + 手指（絕對定位） -->
+  <div class="guidePointerLayer" id="guidePointerLayer" aria-hidden="true">
+    <div class="guideArrow" id="guideArrow"></div>
+    <div class="guideHand" id="guideHand" title="點這裡！"></div>
+  </div>
+
+  <div class="guideCard" id="guideCard" role="dialog" aria-modal="true">
+    <div class="guideHead">
+      <div class="guideTitle" id="guideTitle">新手引導</div>
+      <div class="guidePill" id="guideStepPill">1 / 6</div>
+    </div>
+
+    <div class="guideBody" id="guideBody">內容</div>
+    <div class="guideHint" id="guideHint">提示</div>
+
+    <div class="guideBtnRow">
+      <button class="btn" onclick="guidePrev()" id="guidePrevBtn">⬅️ 上一步</button>
+      <button class="btn" onclick="guideSkip()">跳過</button>
+      <button class="btn btnPrimary" onclick="guideNext()" id="guideNextBtn">下一步 ➡️</button>
+    </div>
+  </div>
+</div>
+
+<!-- Battle overlay -->
+<div class="battleOverlay" id="battleOverlay">
+  <div class="battleStage">
+    <div class="battleHead">
+      <div>
+        <div class="battleTitle">⚔️ 戰鬥中…</div>
+        <div class="battleSub">戰鬥是模擬，不會刪掉你的卡牌</div>
+      </div>
+      <div class="battleSub" id="battleRound">Round 1</div>
+    </div>
+
+    <div class="lane">
+      <div class="laneSide" id="battleLeft"></div>
+      <div class="vs">VS</div>
+      <div class="laneSide" id="battleRight"></div>
+    </div>
+
+    <div class="smallNote">（展示最多 7v7）</div>
+  </div>
+</div>
+
+<!-- Result overlay -->
+<div class="overlay" id="overlay">
+  <div class="resultCard" onclick="event.stopPropagation()">
+    <div class="resultTop">
+      <div class="resultBig" id="resultBig">RESULT</div>
+      <div class="pill" id="resultPill">—</div>
+    </div>
+    <div class="resultBody" id="resultBody"></div>
+    <div class="resultBtnRow" id="resultBtnRow">
+      <button class="btn btnPrimary" onclick="closeOverlay()">繼續</button>
+    </div>
+    <div class="smallNote" id="gameoverText"></div>
+  </div>
+</div>
+
+<script src="game69.js"></script>
+</body>
+</html>
+
