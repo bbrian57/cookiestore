@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>Buckshot Roulette</title>
+
+<style>
+body {
+    margin: 0;
+    background: radial-gradient(circle at top, #222, #000);
+    color: #ddd;
+    font-family: "Segoe UI", sans-serif;
+    overflow: hidden;
+}
+
+.game {
+    width: 900px;
+    margin: auto;
+    padding-top: 20px;
+    text-align: center;
+}
+
+h1 {
+    letter-spacing: 4px;
+    color: #b30000;
+    text-shadow: 0 0 10px #400;
+}
+
+/* ===== 狀態 ===== */
+.status {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px 0;
+    font-size: 20px;
+}
+
+.hp {
+    background: #111;
+    padding: 15px 30px;
+    border: 2px solid #333;
+    box-shadow: inset 0 0 10px #000;
+}
+
+/* ===== 槍 ===== */
+.gun {
+    margin: 20px auto;
+    width: 520px;
+    height: 120px;
+    background: linear-gradient(#333, #111);
+    border-radius: 60px;
+    box-shadow: inset 0 0 20px #000, 0 0 20px #000;
+    position: relative;
+}
+
+/* ===== 子彈 ===== */
+.bullets {
+    display: flex;
+    justify-content: center;
+    margin: 15px;
+    min-height: 45px;
+}
+
+.bullet {
+    width: 18px;
+    height: 40px;
+    margin: 0 6px;
+    border-radius: 6px;
+    background: linear-gradient(#777, #333);
+    box-shadow: inset 0 0 5px #000;
+}
+
+/* ===== 補充提示 ===== */
+.reload-text {
+    color: #ff4444;
+    font-size: 18px;
+    letter-spacing: 2px;
+    margin-top: 10px;
+    display: none;
+}
+
+/* ===== 按鈕 ===== */
+.controls button {
+    background: #111;
+    color: #eee;
+    border: 2px solid #444;
+    padding: 15px 35px;
+    margin: 15px;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 0 10px #000;
+}
+
+.controls button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* ===== 紀錄 ===== */
+.log {
+    width: 80%;
+    height: 180px;
+    margin: 20px auto;
+    background: #0b0b0b;
+    border: 1px solid #333;
+    padding: 15px;
+    overflow-y: auto;
+    font-family: monospace;
+    box-shadow: inset 0 0 10px #000;
+}
+
+/* ===== 震動 ===== */
+.shake {
+    animation: shake 0.3s;
+}
+@keyframes shake {
+    0% { transform: translate(0); }
+    20% { transform: translate(-10px); }
+    40% { transform: translate(10px); }
+    60% { transform: translate(-10px); }
+    80% { transform: translate(10px); }
+    100% { transform: translate(0); }
+}
+
+/* ===== 紅光 ===== */
+.damage {
+    position: fixed;
+    inset: 0;
+    background: rgba(180, 0, 0, 0.45);
+    pointer-events: none;
+    animation: flash 0.4s;
+}
+@keyframes flash {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="game">
+    <h1>BUCKSHOT ROULETTE</h1>
+
+    <div class="status">
+        <div class="hp">你 ❤️ <span id="playerHp">3</span></div>
+        <div class="hp">對手 💀 <span id="enemyHp">3</span></div>
+    </div>
+
+    <div class="gun"></div>
+
+    <div class="bullets" id="bullets"></div>
+    <div class="reload-text" id="reloadText">🔄 補充彈藥中…</div>
+
+    <div class="controls">
+        <button id="btnSelf" onclick="shoot('self')">對自己</button>
+        <button id="btnEnemy" onclick="shoot('enemy')">對對手</button>
+    </div>
+
+    <div class="log" id="log"></div>
+</div>
+
+<div id="damage"></div>
+
+<script>
+let bullets = [];
+let playerHp = 3;
+let enemyHp = 3;
+let reloading = false;
+
+/* ===== 補充彈藥 ===== */
+function reload() {
+    reloading = true;
+    toggleButtons(false);
+    document.getElementById("reloadText").style.display = "block";
+    log("🔄 子彈用盡，正在補充彈藥…");
+
+    bullets = [];
+    const rounds = ["live","live","live","blank","blank","blank"];
+    rounds.sort(() => Math.random() - 0.5);
+
+    setTimeout(() => {
+        rounds.forEach((r, i) => {
+            setTimeout(() => {
+                bullets.push(r);
+                drawBullets();
+            }, i * 200);
+        });
+
+        setTimeout(() => {
+            document.getElementById("reloadText").style.display = "none";
+            toggleButtons(true);
+            reloading = false;
+            log("✔ 補充完成");
+        }, rounds.length * 200 + 200);
+
+    }, 800);
+}
+
+/* ===== 子彈顯示 ===== */
+function drawBullets() {
+    const area = document.getElementById("bullets");
+    area.innerHTML = "";
+    bullets.forEach(() => {
+        const b = document.createElement("div");
+        b.className = "bullet";
+        area.appendChild(b);
+    });
+}
+
+/* ===== 受傷效果 ===== */
+function hitEffect() {
+    document.body.classList.add("shake");
+    setTimeout(() => document.body.classList.remove("shake"), 300);
+
+    const dmg = document.getElementById("damage");
+    dmg.className = "damage";
+    setTimeout(() => dmg.className = "", 400);
+}
+
+/* ===== 玩家射擊 ===== */
+function shoot(target) {
+    if (reloading) return;
+
+    if (bullets.length === 0) {
+        reload();
+        return;
+    }
+
+    const round = bullets.shift();
+    drawBullets();
+
+    if (round === "live") {
+        if (target === "self") {
+            playerHp--;
+            hitEffect();
+            log("💥 你對自己扣下扳機——實彈！");
+        } else {
+            enemyHp--;
+            log("💥 你朝對手開槍——命中！");
+        }
+    } else {
+        log("😶 空包彈…");
+    }
+
+    update();
+    setTimeout(enemyTurn, 1200);
+}
+
+/* ===== 電腦回合 ===== */
+function enemyTurn() {
+    if (playerHp <= 0 || enemyHp <= 0 || reloading) return;
+
+    if (bullets.length === 0) {
+        reload();
+        return;
+    }
+
+    const round = bullets.shift();
+    drawBullets();
+    const target = Math.random() < 0.5 ? "player" : "self";
+
+    if (round === "live") {
+        if (target === "player") {
+            playerHp--;
+            hitEffect();
+            log("🤖 對手朝你開槍！");
+        } else {
+            enemyHp--;
+            log("🤖 對手賭錯了…");
+        }
+    } else {
+        log("🤖 對手射出空包彈");
+    }
+
+    update();
+}
+
+/* ===== UI ===== */
+function toggleButtons(on) {
+    document.getElementById("btnSelf").disabled = !on;
+    document.getElementById("btnEnemy").disabled = !on;
+}
+
+function update() {
+    document.getElementById("playerHp").textContent = playerHp;
+    document.getElementById("enemyHp").textContent = enemyHp;
+
+    if (playerHp <= 0) {
+        alert("☠️ 你倒下了");
+        location.reload();
+    }
+    if (enemyHp <= 0) {
+        alert("🎉 你活下來了");
+        location.reload();
+    }
+}
+
+function log(text) {
+    const l = document.getElementById("log");
+    l.innerHTML += text + "<br>";
+    l.scrollTop = l.scrollHeight;
+}
+
+/* ===== 初始裝填 ===== */
+reload();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>菜刀石頭布</title>
+  <link rel="stylesheet" href="style3.css" />
+</head>
+<body>
+  <div class="bg">
+    <div class="bg-orb orb1"></div>
+    <div class="bg-orb orb2"></div>
+    <div class="bg-orb orb3"></div>
+  </div>
+
+  <!-- neon flash overlay -->
+  <div class="flash" id="flash"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">✋</div>
+      <div>
+        <div class="title">菜刀石頭布</div>
+        <div class="subtitle">輸了 → 你出拳的那隻手要折斷一根手指</div>
+      </div>
+    </div>
+
+    <div class="hud">
+      <div class="chip">
+        <div class="chip-k">剩餘回合</div>
+        <div class="chip-v" id="roundLeft">20</div>
+      </div>
+      <div class="rulechip" id="ruleChip" title="點我查看規則">規則</div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="arena">
+      <!-- ENEMY -->
+      <div class="panel enemy">
+        <div class="panel-head">
+          <div class="who">
+            <span class="dot enemy-dot"></span>
+            <span class="name">對手</span>
+          </div>
+          <div class="status" id="enemyStatus">等待中…</div>
+        </div>
+
+        <div class="hands">
+          <div class="hand-card" data-side="enemy" data-hand="left">
+            <div class="hand-top">
+              <div class="hand-title">左手</div>
+              <div class="hand-moves" id="enemyMovesLeft"></div>
+            </div>
+            <div class="fingers" id="enemyLeftFingers"></div>
+          </div>
+
+          <div class="hand-card" data-side="enemy" data-hand="right">
+            <div class="hand-top">
+              <div class="hand-title">右手</div>
+              <div class="hand-moves" id="enemyMovesRight"></div>
+            </div>
+            <div class="fingers" id="enemyRightFingers"></div>
+          </div>
+        </div>
+
+        <div class="lastmove">
+          <div class="badge">對手出拳</div>
+          <div class="move" id="enemyLastMove">—</div>
+        </div>
+      </div>
+
+      <!-- CENTER -->
+      <div class="center">
+        <div class="score">
+          <div class="scorebox">
+            <div class="label">回合倒數</div>
+            <div class="value" id="roundLeftBig">20</div>
+          </div>
+          <div class="scorebox">
+            <div class="label">比分</div>
+            <div class="value" id="scoreLine">你 0 : 0 對手</div>
+          </div>
+        </div>
+
+        <div class="console">
+          <div class="log-title">戰鬥紀錄</div>
+          <div class="log-body" id="logBody"></div>
+        </div>
+
+        <div class="actions">
+          <div class="action-title">你要用哪隻手出哪個拳？</div>
+          <div class="action-grid" id="actionGrid"></div>
+
+          <div class="action-row">
+            <button class="btn ghost" id="btnReset" type="button">重新開始</button>
+            <button class="btn" id="btnHelp" type="button">玩法說明</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PLAYER -->
+      <div class="panel player">
+        <div class="panel-head">
+          <div class="who">
+            <span class="dot player-dot"></span>
+            <span class="name">玩家</span>
+          </div>
+          <div class="status" id="playerStatus">輪到你出拳</div>
+        </div>
+
+        <div class="hands">
+          <div class="hand-card" data-side="player" data-hand="left">
+            <div class="hand-top">
+              <div class="hand-title">左手</div>
+              <div class="hand-moves" id="playerMovesLeft"></div>
+            </div>
+            <div class="fingers" id="playerLeftFingers"></div>
+          </div>
+
+          <div class="hand-card" data-side="player" data-hand="right">
+            <div class="hand-top">
+              <div class="hand-title">右手</div>
+              <div class="hand-moves" id="playerMovesRight"></div>
+            </div>
+            <div class="fingers" id="playerRightFingers"></div>
+          </div>
+        </div>
+
+        <div class="lastmove">
+          <div class="badge">你出拳</div>
+          <div class="move" id="playerLastMove">—</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- START / HELP MODAL -->
+  <dialog class="modal" id="helpModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div class="modal-title">玩法說明</div>
+        <button class="iconbtn" id="helpClose" aria-label="close">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="rule">
+          <div class="rule-row"><span class="pill">✌ 剪刀</span> 需要 <b>食指 + 中指</b></div>
+          <div class="rule-row"><span class="pill">✋ 布</span> 需要 <b>食指 + 中指 + 無名指</b></div>
+          <div class="rule-row"><span class="pill">✊ 石頭</span> 只要 <b>該手還有任何一根手指沒折斷</b> 就能出</div>
+        </div>
+
+        <div class="muted">
+          每回合：你選擇「左/右手」+「拳」。<br/>
+          <b>輸了</b>：你剛剛出拳那隻手必須「折斷」一根還能用的手指（會變紅）。<br/>
+          倒數 <b>20</b> 回合結束後以比分決勝；若中途某方完全無法出任何拳，直接判負。
+        </div>
+      </div>
+
+      <div class="modal-foot">
+        <button class="btn" id="helpOk">開始遊戲</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- FINGER PICK MODAL -->
+  <dialog class="modal" id="fingerModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div class="modal-title" id="fingerTitle">選擇要折斷的手指</div>
+        <button class="iconbtn" id="fingerClose" aria-label="close">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="muted" id="fingerDesc"></div>
+        <div class="finger-pick" id="fingerPick"></div>
+      </div>
+
+      <div class="modal-foot">
+        <button class="btn ghost" id="fingerCancel">取消</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" aria-live="polite"></div>
+
+  <script src="game3.js"></script>
+</body>
+</html>

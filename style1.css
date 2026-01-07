@@ -1,0 +1,271 @@
+:root{
+  --cols: 15;
+  --rows: 8;
+
+  --line: rgba(255,255,255,.10);
+  --cell-bg: rgba(0,0,0,.08);
+
+  --player-border: rgba(255,255,255,.90);
+  --start-tint: rgba(40, 120, 255, .18);
+  --goal-tint: rgba(200, 30, 30, .18);
+
+  --blood1: rgba(120, 0, 0, .85);
+  --blood2: rgba(255, 0, 0, .35);
+}
+
+*{ box-sizing: border-box; }
+body{
+  margin:0;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#070707;
+  color:#eaeaea;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+.wrap{
+  width:min(1200px, 96vw);
+  padding:18px 14px 22px;
+}
+
+.title{
+  text-align:center;
+  margin-bottom:10px;
+}
+.title h1{
+  margin:0 0 6px;
+  letter-spacing: 6px;
+  text-shadow: 0 2px 12px rgba(0,0,0,.7);
+}
+#status{
+  margin:0;
+  color:#ff5a5a;
+  font-size:14px;
+}
+
+.board{
+  position:relative;
+  width:100%;
+  /* 你的 game1.png 是 1536×1024（3:2） */
+  aspect-ratio: 3 / 2;
+  border-radius: 12px;
+  overflow:hidden;
+  box-shadow: 0 20px 70px rgba(0,0,0,.6);
+  background:
+    radial-gradient(1200px 600px at 50% 50%, rgba(0,0,0,.15), rgba(0,0,0,.65)),
+    url("game1.png") center/cover no-repeat;
+}
+
+/* 格子層 */
+.grid{
+  position:absolute;
+  inset: 0;
+  display:grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  grid-template-rows: repeat(var(--rows), 1fr);
+  padding: 10.5% 12.2% 11% 12.2%;
+  /* 這個 padding 是用來把格子對齊到圖片中的盤面框
+     如果你覺得格子沒對準，只要微調這四個百分比即可 */
+  gap: 6px;
+}
+
+.cell{
+  position:relative;
+  border: 1px solid var(--line);
+  background: linear-gradient(145deg, rgba(255,255,255,.06), rgba(0,0,0,.10));
+  box-shadow: inset 0 2px 10px rgba(0,0,0,.55);
+  border-radius: 4px;
+
+  display:flex;
+  justify-content:center;
+  align-items:center;
+
+  color:#e8e8e8;
+  font-weight: 700;
+  font-size: clamp(12px, 1.6vw, 20px);
+  text-shadow: 0 2px 10px rgba(0,0,0,.9);
+  user-select:none;
+}
+
+.cell::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: var(--cell-bg);
+  opacity: .35;
+  border-radius: 4px;
+}
+
+/* 起點/終點淡色提示 */
+.cell.start::after{ background: var(--start-tint); opacity:.55; }
+.cell.goal::after{ background: var(--goal-tint); opacity:.55; }
+
+/* 玩家位置：只用邊框表示（你要求不使用表情符號） */
+.cell.player{
+  outline: 3px solid var(--player-border);
+  outline-offset: -2px;
+}
+
+/* 地雷顯示（死亡後才會亮出） */
+.cell.mine{
+  background: linear-gradient(145deg, rgba(150,0,0,.55), rgba(0,0,0,.25));
+  border-color: rgba(255,80,80,.45);
+}
+.cell.mine::after{ opacity:.0; }
+.cell.mine .mine-dot{
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: rgba(255,80,80,.95);
+  box-shadow: 0 0 14px rgba(255,0,0,.65);
+}
+
+/* ========= 死亡動畫（爆炸 + 血紅覆蓋） ========= */
+.board.dead{
+  animation: shake .35s infinite;
+}
+@keyframes shake{
+  0%{ transform: translate(0,0); }
+  25%{ transform: translate(-6px,4px); }
+  50%{ transform: translate(6px,-4px); }
+  75%{ transform: translate(-4px,-6px); }
+  100%{ transform: translate(0,0); }
+}
+
+.cell.explode{
+  z-index: 3;
+  animation: explode .55s ease-out forwards;
+}
+@keyframes explode{
+  0%{ transform: scale(1); filter: brightness(1); }
+  30%{ transform: scale(1.25) rotate(6deg); filter: brightness(1.8); }
+  60%{ transform: scale(1.7) rotate(-8deg); filter: brightness(2.2); }
+  100%{ transform: scale(0.15) rotate(25deg); opacity:0; }
+}
+
+/* 血液覆蓋層：更像血（深紅+暗邊+流動顆粒） */
+.overlay{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:
+    radial-gradient(900px 500px at 50% 45%, var(--blood2), rgba(0,0,0,.0) 60%),
+    radial-gradient(1200px 800px at 50% 60%, var(--blood1), rgba(0,0,0,.92) 75%),
+    repeating-radial-gradient(circle at 40% 55%, rgba(0,0,0,.0) 0 6px, rgba(0,0,0,.10) 6px 10px);
+  opacity: 0;
+  transition: opacity .2s ease;
+}
+.overlay.show{ opacity: 1; }
+.hidden{ display:none; }
+
+.overlay-inner{
+  text-align:center;
+  padding: 18px 22px;
+  border-radius: 14px;
+  background: rgba(0,0,0,.35);
+  box-shadow: 0 15px 60px rgba(0,0,0,.6);
+  backdrop-filter: blur(3px);
+}
+
+.overlay-title{
+  font-family: "Impact", "Haettenschweiler", "Arial Black", system-ui, sans-serif;
+  letter-spacing: 6px;
+  font-size: clamp(44px, 7vw, 92px);
+  color: rgba(255,255,255,.95);
+  text-shadow:
+    0 0 18px rgba(255,0,0,.35),
+    0 8px 45px rgba(0,0,0,.85);
+}
+.overlay-msg{
+  margin-top: 6px;
+  font-size: 16px;
+  color: rgba(255,255,255,.92);
+  text-shadow: 0 2px 14px rgba(0,0,0,.8);
+}
+.overlay-hint{
+  margin-top: 10px;
+  font-size: 13px;
+  color: rgba(255,255,255,.75);
+}
+
+.legend{
+  margin-top: 10px;
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  flex-wrap: wrap;
+}
+.chip{
+  font-size:12px;
+  padding:6px 10px;
+  border-radius: 999px; 
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.25);
+}
+.chip.start{ border-color: rgba(40,120,255,.35); }
+.chip.goal{ border-color: rgba(200,30,30,.35); }
+.chip.note{ color: rgba(255,255,255,.75); }
+/* ====== 玩法介紹（新增，不要改原本程式）====== */
+.howto-overlay{
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,.72);
+  z-index: 9999;
+}
+
+.howto-overlay.hidden{ display:none; }
+
+.howto-card{
+  width: min(560px, 92vw);
+  border-radius: 14px;
+  padding: 18px 18px 14px;
+  background: rgba(10,10,10,.82);
+  border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 18px 70px rgba(0,0,0,.65);
+  backdrop-filter: blur(6px);
+  color: #fff;
+}
+
+.howto-card h2{
+  margin: 0 0 10px;
+  letter-spacing: 2px;
+}
+
+.howto-list{
+  margin: 0;
+  padding-left: 18px;
+  line-height: 1.7;
+  color: rgba(255,255,255,.92);
+}
+
+.howto-actions{
+  margin-top: 14px;
+  display:flex;
+  justify-content: flex-end;
+}
+
+.howto-btn{
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(255,255,255,.10);
+  color: #fff;
+  cursor: pointer;
+}
+
+.howto-btn:hover{
+  background: rgba(255,255,255,.16);
+}
+
+.howto-tip{
+  margin-top: 10px;
+  font-size: 12px;
+  color: rgba(255,255,255,.70);
+}
+/* ====== /玩法介紹（新增）====== */

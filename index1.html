@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>絕望迴廊：最後一格</title>
+  <link rel="stylesheet" href="style1.css" />
+</head>
+<body>
+  <div class="wrap">
+    <div class="title">
+      <h1>最後一格</h1>
+      <p id="status">WASD 移動。走到右側終點。你踩的不是地板。</p>
+    </div>
+
+    <!-- 背景盤面 + 格子層（疊在上面） -->
+    <div id="board" class="board" aria-label="game board">
+      <div id="grid" class="grid" aria-hidden="true"></div>
+
+      <!-- 死亡/通關覆蓋層 -->
+      <div id="overlay" class="overlay hidden">
+        <div class="overlay-inner">
+          <div id="overlayTitle" class="overlay-title">GAME OVER</div>
+          <div id="overlayMsg" class="overlay-msg"></div>
+          <div class="overlay-hint">按 R 重新開始</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <span class="chip start">START</span>
+      <span class="chip goal">GOAL</span>
+      <span class="chip note">（終點 50% 死亡）</span>
+      <span class="chip note">（數字 20% 說謊）</span>
+    </div>
+  </div>
+
+  <!-- ====== 玩法介紹（新增，不要改原本程式）====== -->
+<div id="howtoOverlay" class="howto-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="howtoTitle">
+  <div class="howto-card">
+    <h2 id="howtoTitle">玩法說明</h2>
+    <ul class="howto-list">
+      <li><b>W / A / S / D</b> 移動（也可用方向鍵）。</li>
+      <li>你走到的格子會顯示<b>周圍炸彈數</b>，但有 <b>20%</b> 機率說謊。</li>
+      <li>走到<b>終點</b>時仍有 <b>50%</b> 機率死亡。</li>
+      <li><b>Esc</b>：回到主頁（index.html）。</li>
+      <li><b>R</b>：重新開始（如果你原本就有 R 重開）。</li>
+    </ul>
+
+    <div class="howto-actions">
+      <button id="howtoStartBtn" class="howto-btn">開始</button>
+    </div>
+
+    <div class="howto-tip">提示：本關通關後會自動進入下一關 <b>index2.html</b></div>
+  </div>
+</div>
+<!-- ====== /玩法介紹（新增）====== -->
+
+  <script src="game1.js"></script>
+</body>
+</html>

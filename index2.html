@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>俄羅斯方塊</title>
+  <link rel="stylesheet" href="style2.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <div class="left">
+        <div class="title">俄羅斯方塊</div>
+        <div class="sub">在掉落的方塊壓迫下活下去，爬向右側出口。</div>
+      </div>
+
+      <div class="hud">
+        <div class="row"><span>狀態</span><b id="hudStatus">等待</b></div>
+        <div class="row"><span>剩餘</span><b id="hudTime">60</b><span>s</span></div>
+      </div>
+    </header>
+
+    <main class="stage">
+      <div class="panel">
+        <canvas id="game" aria-label="game canvas"></canvas>
+
+        <div class="hint">
+          <span class="k">A</span><span class="k">D</span> 移動　
+          <span class="k">W</span>/<span class="k">Space</span> 跳躍　
+          <span class="k">R</span> 重來　
+          <!-- <span class="k">Esc</span> 回主頁-->
+        </div>
+
+        <div id="overlay" class="overlay">
+          <div class="card">
+            <h2 id="overlayTitle">玩法說明</h2>
+
+            <!-- ✅ 注意：這段就是「原始玩法說明」，JS 會在載入時備份，之後不會被覆蓋掉 -->
+            <p id="overlayText" class="desc">
+              你被困在俄羅斯方塊構成的空間底部。<br><br>
+
+              ■ 上方的方塊會不斷掉落並永久堆疊。<br>
+              ■ 你無法破壞它們，只能利用它們往上爬。<br>
+              ■ 被方塊壓住，或卡在縫隙中，會立刻死亡。<br><br>
+
+              ■ 右側牆有一個出口。<br>
+              ■ 在時間結束前抵達出口即可通關。<br><br>
+
+              ■ 時間只有 <b>60 秒</b>。<br>
+              ■ 時間到後，整個空間會一層一層被填滿。<br><br>
+
+            </p>
+
+            <button id="btnStart">開始</button>
+            <button id="btnNext" class="hidden">進入下一關</button>
+            <button id="btnRestart" class="hidden">重新開始 (R)</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="game2.js"></script>
+</body>
+</html>

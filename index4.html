@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>彈珠試煉 · 關卡 4</title>
+  <link rel="stylesheet" href="style4.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <div class="brand">
+        <div class="dot"></div>
+        <div class="title">
+          <div class="h1">彈珠試煉 · 關卡 4</div>
+          <div class="sub">300 秒內賺到 500；每次發射 -10；沒錢發射直接死亡；必死洞必死</div>
+        </div>
+      </div>
+
+      <div class="hud">
+        <div class="hudCard">
+          <div class="label">金錢</div>
+          <div class="value" id="moneyText">50</div>
+          <div class="mini">目標：<span id="goalText">500</span></div>
+        </div>
+
+        <div class="hudCard">
+          <div class="label">時間</div>
+          <div class="value" id="timeText">300</div>
+          <div class="mini">秒</div>
+        </div>
+
+        <div class="hudCard">
+          <div class="label">狀態</div>
+          <div class="value status" id="statusText">READY</div>
+          <div class="mini">A/D 或 ←/→ 翻板</div>
+        </div>
+      </div>
+    </header>
+
+    <main class="stage">
+      <div class="panel">
+        <canvas id="game" width="900" height="560"></canvas>
+
+        <div class="controls">
+          <button id="launchBtn" class="btn primary">發射（-10）</button>
+          <button id="resetBtn" class="btn">重來</button>
+
+          <div class="tips">
+            <div class="tip"><span class="chip bonus">+錢洞</span> 進洞加錢</div>
+            <div class="tip"><span class="chip penalty">-錢洞</span> 進洞扣錢</div>
+            <div class="tip"><span class="chip death">必死洞</span> 進洞直接死亡</div>
+          </div>
+        </div>
+
+        <div id="overlay" class="overlay hidden">
+          <div class="overlayCard">
+            <div id="overlayTitle" class="overlayTitle">玩法說明</div>
+            <div id="overlayDesc" class="overlayDesc"></div>
+            <div class="overlayRow">
+              <button id="overlayPrimary" class="btn primary">開始遊戲</button>
+              <button id="overlaySecondary" class="btn">關閉</button>
+            </div>
+            <div class="overlayHint">提示：翻板救球，把球送進 +錢洞，避開必死洞。</div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <span>© Level 4 Prototype</span>
+      <span class="sep">•</span>
+      <span>空白鍵發射；A/D 翻板</span>
+    </footer>
+  </div>
+
+  <script src="game4.js"></script>
+</body>
+</html>
